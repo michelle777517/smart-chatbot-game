@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>心流對話局｜智慧聊天遊戲</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: rgba(18, 27, 53, .88);
+      --panel-2: rgba(28, 40, 73, .9);
+      --text: #edf4ff;
+      --muted: #9fb1d3;
+      --primary: #7c9cff;
+      --primary-2: #9d7cff;
+      --good: #58d6a9;
+      --warn: #ffcb6b;
+      --danger: #ff7c97;
+      --border: rgba(255,255,255,.1);
+      --shadow: 0 24px 80px rgba(0,0,0,.42);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, "Noto Sans TC", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 15% 15%, rgba(124,156,255,.28), transparent 34%),
+        radial-gradient(circle at 85% 10%, rgba(157,124,255,.22), transparent 34%),
+        radial-gradient(circle at 50% 100%, rgba(88,214,169,.14), transparent 38%),
+        var(--bg);
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+    button, input, select { font: inherit; }
+    .app {
+      width: min(1080px, 100%);
+      min-height: min(760px, calc(100vh - 48px));
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      backdrop-filter: blur(18px);
+      display: grid;
+      grid-template-columns: 300px 1fr;
+    }
+    .sidebar {
+      padding: 28px;
+      border-right: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.012));
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+    .brand { display: flex; gap: 12px; align-items: center; }
+    .logo {
+      width: 46px; height: 46px; border-radius: 15px;
+      display: grid; place-items: center;
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      box-shadow: 0 10px 30px rgba(124,156,255,.25);
+      font-size: 24px;
+    }
+    h1 { font-size: 19px; margin: 0; }
+    .subtitle { color: var(--muted); font-size: 12px; margin-top: 3px; }
+    .card {
+      background: rgba(255,255,255,.035);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 16px;
+    }
+    .label { color: var(--muted); font-size: 12px; margin-bottom: 8px; }
+    .value { font-weight: 700; }
+    .meter { height: 9px; border-radius: 99px; background: rgba(255,255,255,.08); overflow: hidden; margin-top: 10px; }
+    .meter > span { display: block; height: 100%; width: 0%; background: linear-gradient(90deg, var(--primary), var(--good)); transition: width .35s ease; }
+    .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .stat { padding: 13px; text-align: center; }
+    .stat strong { display: block; font-size: 20px; }
+    .stat small { color: var(--muted); }
+    .rules { margin-top: auto; color: var(--muted); font-size: 12px; line-height: 1.75; }
+    .main { min-width: 0; display: flex; flex-direction: column; }
+    .topbar {
+      height: 78px; padding: 0 26px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .topic-pill { padding: 9px 13px; border-radius: 999px; background: rgba(124,156,255,.12); color: #cdd9ff; font-size: 13px; border: 1px solid rgba(124,156,255,.2); }
+    .ghost {
+      border: 1px solid var(--border); color: var(--muted); background: transparent;
+      border-radius: 11px; padding: 8px 12px; cursor: pointer;
+    }
+    .screen { flex: 1; min-height: 0; }
+    .setup {
+      height: 100%; display: grid; place-items: center; padding: 34px;
+    }
+    .setup-box { width: min(620px, 100%); }
+    .eyebrow { color: #aebeff; font-size: 13px; font-weight: 700; letter-spacing: .12em; }
+    .setup h2 { margin: 10px 0 10px; font-size: clamp(30px, 5vw, 52px); line-height: 1.12; }
+    .setup p { color: var(--muted); line-height: 1.75; }
+    .field { margin-top: 20px; }
+    .field label { display: block; font-size: 13px; color: #cbd7f2; margin-bottom: 9px; }
+    .choices { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .choice {
+      border: 1px solid var(--border); background: rgba(255,255,255,.025); color: var(--text);
+      border-radius: 15px; padding: 15px 10px; cursor: pointer; text-align: center;
+      transition: .2s ease;
+    }
+    .choice:hover, .choice.active { transform: translateY(-2px); border-color: rgba(124,156,255,.75); background: rgba(124,156,255,.13); }
+    input, select {
+      width: 100%; border: 1px solid var(--border); border-radius: 14px; padding: 14px 15px;
+      background: rgba(255,255,255,.045); color: var(--text); outline: none;
+    }
+    option { color: #111; }
+    .primary {
+      width: 100%; margin-top: 24px; border: 0; border-radius: 15px; padding: 15px 18px;
+      color: white; font-weight: 800; cursor: pointer;
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      box-shadow: 0 15px 35px rgba(124,156,255,.22);
+    }
+    .chat { height: 100%; display: none; flex-direction: column; }
+    .messages { flex: 1; min-height: 0; overflow-y: auto; padding: 26px; scroll-behavior: smooth; }
+    .message { display: flex; gap: 11px; margin: 14px 0; align-items: flex-end; }
+    .message.user { flex-direction: row-reverse; }
+    .avatar { width: 35px; height: 35px; border-radius: 12px; display: grid; place-items: center; flex: none; background: rgba(255,255,255,.07); }
+    .bubble { max-width: min(72%, 620px); padding: 13px 15px; border-radius: 18px 18px 18px 5px; line-height: 1.65; background: var(--panel-2); border: 1px solid var(--border); }
+    .user .bubble { background: linear-gradient(135deg, rgba(124,156,255,.95), rgba(157,124,255,.95)); border: 0; border-radius: 18px 18px 5px 18px; }
+    .quick { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 4px 46px; }
+    .quick button { border: 1px solid rgba(124,156,255,.26); color: #d7e0ff; background: rgba(124,156,255,.09); border-radius: 999px; padding: 8px 12px; cursor: pointer; }
+    .composer { padding: 18px 24px 24px; border-top: 1px solid var(--border); display: grid; grid-template-columns: 1fr auto; gap: 10px; }
+    .composer button { width: 50px; border: 0; border-radius: 14px; color: white; font-size: 20px; cursor: pointer; background: linear-gradient(135deg, var(--primary), var(--primary-2)); }
+    .typing { color: var(--muted); font-size: 12px; margin-left: 48px; }
+    .ending { text-align: center; padding: 36px; }
+    .ending .big { font-size: 56px; }
+    .ending h3 { font-size: 30px; margin: 10px; }
+    .ending p { color: var(--muted); line-height: 1.7; }
+    @media (max-width: 760px) {
+      body { padding: 0; }
+      .app { min-height: 100vh; border-radius: 0; grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .choices { grid-template-columns: 1fr; }
+      .setup { padding: 24px; }
+      .bubble { max-width: 84%; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">✦</div>
+        <div><h1>心流對話局</h1><div class="subtitle">智慧聊天 × 劇情遊戲</div></div>
+      </div>
+      <div class="card">
+        <div class="label">目前任務</div>
+        <div class="value" id="mission">尚未開始</div>
+        <div class="meter"><span id="progressBar"></span></div>
+      </div>
+      <div class="stats">
+        <div class="card stat"><strong id="score">0</strong><small>共鳴值</small></div>
+        <div class="card stat"><strong id="turn">0</strong><small>對話回合</small></div>
+      </div>
+      <div class="card">
+        <div class="label">機器人情緒</div>
+        <div class="value" id="mood">等待連線</div>
+      </div>
+      <div class="rules">玩法：選定方向與主題後開始對話。回答越具體、越有情感或想像力，共鳴值越高。完成 6 回合即可觸發專屬結局。</div>
+    </aside>
+
+    <section class="main">
+      <header class="topbar">
+        <div class="topic-pill" id="topicPill">尚未選擇主題</div>
+        <button class="ghost" id="restartBtn">重新開始</button>
+      </header>
+      <div class="screen">
+        <section class="setup" id="setup">
+          <div class="setup-box">
+            <div class="eyebrow">CHAT QUEST 01</div>
+            <h2>選擇一段<br>屬於你的對話旅程</h2>
+            <p>你將和「洛米」展開六回合對話。它會依照你的方向、主題與回答內容改變語氣、提問和故事走向。</p>
+            <div class="field">
+              <label>1. 選擇聊天方向</label>
+              <div class="choices" id="directionChoices">
+                <button class="choice" data-value="療癒陪伴">🌙<br>療癒陪伴</button>
+                <button class="choice" data-value="冒險劇情">🧭<br>冒險劇情</button>
+                <button class="choice" data-value="腦力挑戰">🧠<br>腦力挑戰</button>
+              </div>
+            </div>
+            <div class="field">
+              <label for="topic">2. 輸入聊天主題</label>
+              <input id="topic" maxlength="30" placeholder="例如：友情、未來城市、校園生活、夢想……" />
+            </div>
+            <div class="field">
+              <label for="style">3. 選擇機器人個性</label>
+              <select id="style">
+                <option value="溫柔">溫柔細膩</option>
+                <option value="幽默">幽默活潑</option>
+                <option value="神秘">神秘深沉</option>
+              </select>
+            </div>
+            <button class="primary" id="startBtn">開始對話遊戲</button>
+          </div>
+        </section>
+
+        <section class="chat" id="chat">
+          <div class="messages" id="messages"></div>
+          <div class="composer" id="composer">
+            <input id="messageInput" placeholder="輸入你的回答……" autocomplete="off" />
+            <button id="sendBtn" aria-label="送出">➤</button>
+          </div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+<script>
+const state = { direction: '', topic: '', style: '', turn: 0, score: 0, history: [] };
+const $ = (s) => document.querySelector(s);
+const setup = $('#setup'), chat = $('#chat'), messages = $('#messages');
+
+const prompts = {
+  '療癒陪伴': [
+    '提到「{topic}」，你此刻第一個浮現的感受是什麼？',
+    '這份感受最近在什麼時候最明顯？',
+    '假如它能開口，它最想對你說哪一句話？',
+    '在這件事裡，有沒有一個你其實做得很好的地方？',
+    '你希望明天的自己，為「{topic}」做一個多小的改變？',
+    '最後，請送給現在的自己一句話。'
+  ],
+  '冒險劇情': [
+    '我們抵達以「{topic}」為核心的未知世界。你眼前首先出現什麼？',
+    '一道門突然打開，門後傳來聲音。你選擇進去，還是先觀察？為什麼？',
+    '你遇見一位陌生同伴。你最希望他具備什麼能力？',
+    '危機發生了！你只能帶走一樣東西，你會選什麼？',
+    '終點前出現兩條路：安全但漫長，危險但快速。你怎麼選？',
+    '旅程結束時，你希望帶回現實世界的寶物是什麼？'
+  ],
+  '腦力挑戰': [
+    '先做暖身：請用三個關鍵字描述「{topic}」。',
+    '若要把「{topic}」改造成一款遊戲，核心規則會是什麼？',
+    '請提出一個大多數人可能沒想過的反面觀點。',
+    '現在加入限制：只能用一天、零預算，你會怎麼執行？',
+    '假設計畫失敗，最可能的原因是什麼？你會如何修正？',
+    '用一句有記憶點的標語，總結你的想法。'
+  ]
+};
+
+const intros = {
+  '溫柔': '嗨，我是洛米。放心，這裡沒有標準答案，我會好好接住你的每一句話。',
+  '幽默': '哈囉！我是洛米，今天的任務是把普通聊天聊成一場腦內煙火秀。準備好了嗎？',
+  '神秘': '連線完成。我是洛米。每一個答案，都是通往另一個版本世界的鑰匙。'
+};
+
+function addMessage(text, who='bot') {
+  const row = document.createElement('div');
+  row.className = `message ${who}`;
+  row.innerHTML = `<div class="avatar">${who === 'bot' ? '✦' : '你'}</div><div class="bubble"></div>`;
+  row.querySelector('.bubble').textContent = text;
+  messages.appendChild(row);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+function addQuickReplies(items) {
+  const wrap = document.createElement('div');
+  wrap.className = 'quick';
+  items.forEach(t => {
+    const b = document.createElement('button');
+    b.textContent = t;
+    b.onclick = () => { $('#messageInput').value = t; sendMessage(); wrap.remove(); };
+    wrap.appendChild(b);
+  });
+  messages.appendChild(wrap);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+function personalityPrefix() {
+  if (state.style === '幽默') return ['這回答有料！', '等等，這腦洞我喜歡。', '漂亮，故事開始加速了。'];
+  if (state.style === '神秘') return ['我聽見答案背後還藏著另一層意思。', '有趣，命運的線正在改變。', '這個選擇留下了清楚的回聲。'];
+  return ['謝謝你願意說出來。', '我有接收到你的感受。', '這個回答很真誠。'];
+}
+
+function evaluate(text) {
+  let pts = 8;
+  if (text.length >= 12) pts += 4;
+  if (text.length >= 25) pts += 4;
+  if (/[因為所以希望覺得如果想要害怕喜歡相信]/.test(text)) pts += 4;
+  if (/[，。！？,.!?]/.test(text)) pts += 2;
+  return Math.min(20, pts);
+}
+
+function updateStats() {
+  $('#score').textContent = state.score;
+  $('#turn').textContent = state.turn;
+  $('#progressBar').style.width = `${Math.min(100, state.turn / 6 * 100)}%`;
+  $('#mood').textContent = state.score >= 85 ? '高度共鳴 ✨' : state.score >= 55 ? '逐漸靠近 😊' : state.turn ? '好奇聆聽 👀' : '等待連線';
+}
+
+function botReply() {
+  if (state.turn >= 6) return finishGame();
+  const typing = document.createElement('div');
+  typing.className = 'typing'; typing.textContent = '洛米正在思考…';
+  messages.appendChild(typing); messages.scrollTop = messages.scrollHeight;
+  setTimeout(() => {
+    typing.remove();
+    if (state.turn > 0) {
+      const p = personalityPrefix();
+      addMessage(p[(state.turn - 1) % p.length]);
+    }
+    const q = prompts[state.direction][state.turn].replace('{topic}', state.topic);
+    addMessage(q);
+    if (state.turn === 0) addQuickReplies(state.direction === '冒險劇情' ? ['立刻出發', '先觀察環境', '尋找同伴'] : state.direction === '療癒陪伴' ? ['有點期待', '有些迷惘', '平靜但好奇'] : ['創意', '挑戰', '改變']);
+  }, 650);
+}
+
+function sendMessage() {
+  const input = $('#messageInput');
+  const text = input.value.trim();
+  if (!text || state.turn >= 6) return;
+  addMessage(text, 'user');
+  input.value = '';
+  const earned = evaluate(text);
+  state.score += earned;
+  state.history.push(text);
+  state.turn++;
+  updateStats();
+  botReply();
+}
+
+function finishGame() {
+  $('#composer').style.display = 'none';
+  const title = state.score >= 95 ? '深度共鳴結局' : state.score >= 70 ? '靈感同行結局' : '未完待續結局';
+  const icon = state.score >= 95 ? '🌌' : state.score >= 70 ? '✨' : '🌱';
+  const note = state.direction === '冒險劇情'
+    ? `你在「${state.topic}」的世界裡展現了選擇與想像。真正的寶物，是你願意替未知做出決定。`
+    : state.direction === '療癒陪伴'
+    ? `你願意靠近「${state.topic}」帶來的感受。每一次誠實回答，都讓你更了解自己。`
+    : `你把「${state.topic}」拆解、翻轉，再重新組合。你的創意來自敢於提出不同答案。`;
+  const end = document.createElement('div');
+  end.className = 'ending';
+  end.innerHTML = `<div class="big">${icon}</div><h3>${title}</h3><p>${note}</p><p>最終共鳴值：<strong>${state.score}</strong>／120</p><button class="primary" onclick="location.reload()">再玩一次</button>`;
+  messages.appendChild(end); messages.scrollTop = messages.scrollHeight;
+  $('#mission').textContent = '旅程完成';
+}
+
+document.querySelectorAll('.choice').forEach(btn => btn.addEventListener('click', () => {
+  document.querySelectorAll('.choice').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active'); state.direction = btn.dataset.value;
+}));
+
+$('#startBtn').onclick = () => {
+  const topic = $('#topic').value.trim();
+  if (!state.direction) return alert('請先選擇聊天方向。');
+  if (!topic) return alert('請輸入聊天主題。');
+  state.topic = topic; state.style = $('#style').value;
+  setup.style.display = 'none'; chat.style.display = 'flex';
+  $('#topicPill').textContent = `${state.direction} · ${state.topic}`;
+  $('#mission').textContent = `完成「${state.topic}」六回合對話`;
+  $('#mood').textContent = '已連線 ✦';
+  addMessage(intros[state.style]);
+  setTimeout(botReply, 450);
+  $('#messageInput').focus();
+};
+
+$('#sendBtn').onclick = sendMessage;
+$('#messageInput').addEventListener('keydown', e => { if (e.key === 'Enter') sendMessage(); });
+$('#restartBtn').onclick = () => location.reload();
+</script>
+</body>
+</html>
